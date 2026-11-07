@@ -1,0 +1,136 @@
+@startuml
+hide circle
+skinparam linetype ortho
+
+package "User Service DB (users.db)" {
+  entity "users" as users {
+    * id : INTEGER <<PK>>
+    --
+    * username : TEXT <<UNIQUE>>
+    * password_hash : TEXT
+    * salt : TEXT
+    * full_name : TEXT
+    * phone : TEXT
+    * email : TEXT
+    * balance : INTEGER (CHECK >= 0)
+  }
+
+  entity "sessions" as sessions {
+    * token_hash : TEXT <<PK>>
+    --
+    * user_id : INTEGER <<FK>>
+    * expires_at : INTEGER
+  }
+
+  entity "login_attempts" as login_attempts {
+    * client_key : TEXT <<PK>>
+    --
+    * failures : INTEGER
+    * expires_at : INTEGER
+  }
+
+  entity "account_operations" as account_operations {
+    * transaction_id : TEXT <<PK>>
+    --
+    * user_id : INTEGER <<FK>>
+    * amount : INTEGER (CHECK > 0)
+    * status : TEXT ('DEBITED' | 'REFUNDED')
+    * created_at : INTEGER
+    refunded_at : INTEGER
+  }
+}
+
+package "Tuition Service DB (tuitions.db)" {
+  entity "students" as students {
+    * student_id : TEXT <<PK>>
+    --
+    * full_name : TEXT
+    * faculty : TEXT
+    * major : TEXT
+    * academic_year : TEXT
+  }
+
+  entity "tuitions" as tuitions {
+    * student_id : TEXT <<PK, FK>>
+    --
+    * semester : TEXT
+    * amount : INTEGER (CHECK > 0)
+    * status : TEXT ('UNPAID' | 'RESERVED' | 'PAID')
+    reserved_by : TEXT
+    * reserved_until : INTEGER
+    paid_transaction_id : TEXT <<UNIQUE>>
+    paid_by_user_id : INTEGER
+    paid_at : INTEGER
+  }
+}
+
+package "Payment Service DB (payments.db)" {
+  entity "payments" as payments {
+    * id : TEXT <<PK>>
+    --
+    idempotency_key : TEXT <<UNIQUE>>
+    * user_id : INTEGER
+    * payer_name : TEXT
+    * payer_phone : TEXT
+    * payer_email : TEXT
+    * student_id : TEXT
+    * student_name : TEXT
+    * semester : TEXT
+    * amount : INTEGER (CHECK > 0)
+    * status : TEXT ('PENDING'|'PROCESSING'|'SUCCESS'|'FAILED'|'EXPIRED'|'CANCELLED'|'REFUNDED')
+    failure_code : TEXT
+    failure_message : TEXT
+    verification_id : TEXT
+    * debit_completed : INTEGER
+    * tuition_completed : INTEGER
+    * receipt_queued : INTEGER
+    * needs_refund : INTEGER
+    * created_at : INTEGER
+    * expires_at : INTEGER
+    * updated_at : INTEGER
+    completed_at : INTEGER
+  }
+}
+
+package "Notification Service DB (notifications.db)" {
+  entity "otp_challenges" as otp_challenges {
+    * transaction_id : TEXT <<PK>>
+    --
+    * user_id : INTEGER
+    * student_id : TEXT
+    * amount : INTEGER (CHECK > 0)
+    * code_hash : TEXT
+    * status : TEXT ('ACTIVE'|'CONSUMED'|'EXPIRED'|'LOCKED')
+    * attempts : INTEGER
+    * created_at : INTEGER
+    * expires_at : INTEGER
+    consumed_at : INTEGER
+    verification_id : TEXT <<UNIQUE>>
+  }
+
+  entity "email_outbox" as email_outbox {
+    * event_id : TEXT <<PK>>
+    --
+    * payload_hash : TEXT
+    * recipient : TEXT
+    * subject : TEXT
+    * body : TEXT
+    * status : TEXT ('PENDING'|'SENDING'|'SENT'|'CANCELLED')
+    * attempts : INTEGER
+    * next_attempt : INTEGER
+    * lease_until : INTEGER
+    sent_at : INTEGER
+  }
+}
+
+users ||--o{ sessions : "1..*"
+users ||--o{ account_operations : "1..*"
+students ||--|| tuitions : "1..1"
+users ..o{ payments : "user_id (logical)"
+students ..o{ payments : "student_id (logical)"
+payments ..|| otp_challenges : "id = transaction_id"
+payments ..o| account_operations : "id = transaction_id"
+payments ..o| tuitions : "id = paid_transaction_id"
+otp_challenges ..o{ email_outbox : "otp-{transaction_id}"
+payments ..o{ email_outbox : "receipt-{transaction_id}"
+@enduml

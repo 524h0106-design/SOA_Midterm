@@ -1,0 +1,43 @@
+@startuml
+skinparam componentStyle rectangle
+left to right direction
+
+actor "Người dùng\n(Trình duyệt Web)" as Browser
+
+package "Tầng Giao tiếp (Port 8080)" {
+  component "API Gateway & Static Web\n(services/gateway.py :8080)" as Gateway
+}
+
+package "Tầng Microservices Nội bộ (X-Service-Key)" {
+  component "User Service\n(services/user_service.py :8001)\n[Đăng nhập, Hồ sơ, Số dư, Debit/Refund]" as UserSvc
+  component "Payment Service\n(services/payment_service.py :8002)\n[Điều phối Saga, Giao dịch, Lịch sử]" as PaymentSvc
+  component "Notification Service\n(services/notification_service.py :8003)\n[Quản lý OTP, Outbox Email]" as NotifSvc
+  component "Tuition Service\n(services/tuition_service.py :8004)\n[Sinh viên, Học phí, Khóa & Gạch nợ]" as TuitionSvc
+}
+
+package "Tầng Cơ sở dữ liệu (SQLite WAL - Database-per-Service)" {
+  database "users.db" as UserDB
+  database "payments.db" as PaymentDB
+  database "notifications.db" as NotifDB
+  database "tuitions.db" as TuitionDB
+}
+
+component "SMTP Server / Mailpit\n(:1025 SMTP / :8025 Web UI)" as SMTP
+
+Browser --> Gateway : HTTPS/HTTP JSON\n(/api/auth/*, /api/account,\n/api/tuition/*, /api/payments/*,\n/api/transactions)
+
+Gateway --> UserSvc : /auth/*, /account, /transactions\n& xác thực Bearer Token
+Gateway --> PaymentSvc : /tuition/{mssv}, /payments,\n/payments/{id}, /payments/{id}/confirm
+
+UserSvc --> PaymentSvc : GET /internal/users/{id}/transactions
+PaymentSvc --> UserSvc : GET /auth/me\nPOST /internal/accounts/debit\nPOST /internal/accounts/refund
+PaymentSvc --> TuitionSvc : GET /internal/tuition/{mssv}\nPOST /internal/tuition/{mssv}/pay
+PaymentSvc --> NotifSvc : POST /internal/otp\nPOST /internal/otp/verify\nPOST /internal/receipts
+NotifSvc --> UserSvc : GET /internal/users/{id}
+
+UserSvc --> UserDB
+PaymentSvc --> PaymentDB
+NotifSvc --> NotifDB
+TuitionSvc --> TuitionDB
+NotifSvc --> SMTP : Gửi email OTP &\nEmail biên lai thành công
+@enduml

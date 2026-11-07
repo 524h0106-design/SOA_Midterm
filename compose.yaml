@@ -1,0 +1,69 @@
+services:
+  user:
+    build: .
+    command: python services/user_service.py
+    environment:
+      BIND_HOST: 0.0.0.0
+      PORT: 8001
+      SERVICE_KEY: ${SERVICE_KEY:?Set SERVICE_KEY in .env}
+      PAYMENT_URL: ${DOCKER_PAYMENT_URL:-http://payment:8002}
+      DEMO_LINH_EMAIL: ${DEMO_LINH_EMAIL:-linh@example.com}
+      DEMO_SECOND_EMAIL: ${DEMO_SECOND_EMAIL:-minh@example.com}
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    volumes: [user-data:/app/data]
+  tuition:
+    build: .
+    command: python services/tuition_service.py
+    environment:
+      BIND_HOST: 0.0.0.0
+      PORT: 8004
+      SERVICE_KEY: ${SERVICE_KEY:?Set SERVICE_KEY in .env}
+    volumes: [tuition-data:/app/data]
+  notification:
+    build: .
+    command: python services/notification_service.py
+    environment:
+      BIND_HOST: 0.0.0.0
+      PORT: 8003
+      SERVICE_KEY: ${SERVICE_KEY:?Set SERVICE_KEY in .env}
+      USER_URL: http://user:8001
+      SMTP_HOST: ${DOCKER_SMTP_HOST:-mailpit}
+      SMTP_PORT: ${SMTP_PORT:-1025}
+      SMTP_SECURITY: ${SMTP_SECURITY:-none}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-ibanking@demo.local}
+    volumes: [notification-data:/app/data]
+    depends_on: [user, mailpit]
+  payment:
+    build: .
+    command: python services/payment_service.py
+    environment:
+      BIND_HOST: 0.0.0.0
+      PORT: 8002
+      SERVICE_KEY: ${SERVICE_KEY:?Set SERVICE_KEY in .env}
+      USER_URL: http://user:8001
+      NOTIFICATION_URL: http://notification:8003
+      TUITION_URL: http://tuition:8004
+    volumes: [payment-data:/app/data]
+    depends_on: [user, tuition, notification]
+  gateway:
+    build: .
+    command: python services/gateway.py
+    environment:
+      BIND_HOST: 0.0.0.0
+      PORT: 8080
+      SERVICE_KEY: ${SERVICE_KEY:?Set SERVICE_KEY in .env}
+      USER_URL: http://user:8001
+      PAYMENT_URL: ${DOCKER_PAYMENT_URL:-http://payment:8002}
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    ports: ["127.0.0.1:8080:8080"]
+    depends_on: [user, payment]
+  mailpit:
+    image: axllent/mailpit:v1.20
+    ports: ["127.0.0.1:8025:8025", "127.0.0.1:1025:1025"]
+volumes:
+  user-data:
+  tuition-data:
+  notification-data:
+  payment-data:

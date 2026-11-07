@@ -1,0 +1,37 @@
+Executed in isolated temporary databases and local SMTP fixture on 2026-11-07.
+Command: py -m unittest discover -s tests -v
+
+test_concurrent_accounts_same_tuition_paid_once_and_refunded (test_services.PaymentAndTuitionTest.test_concurrent_accounts_same_tuition_paid_once_and_refunded) ... ok
+test_concurrent_transactions_same_account_never_overdraw (test_services.PaymentAndTuitionTest.test_concurrent_transactions_same_account_never_overdraw) ... ok
+test_full_payment_success_flow_and_receipt (test_services.PaymentAndTuitionTest.test_full_payment_success_flow_and_receipt) ... ok
+test_insufficient_balance_and_partial_payment_rejected (test_services.PaymentAndTuitionTest.test_insufficient_balance_and_partial_payment_rejected) ... ok
+test_tuition_already_paid (test_services.PaymentAndTuitionTest.test_tuition_already_paid) ... ok
+test_tuition_not_found (test_services.PaymentAndTuitionTest.test_tuition_not_found) ... ok
+test_amount_validation (test_services.ServicesTest.test_amount_validation) ... ok
+test_concurrent_debits_never_overdraw (test_services.ServicesTest.test_concurrent_debits_never_overdraw) ... ok
+test_gateway_static_and_no_internal_forwarding (test_services.ServicesTest.test_gateway_static_and_no_internal_forwarding) ... ok
+test_history_is_scoped_to_logged_in_user (test_services.ServicesTest.test_history_is_scoped_to_logged_in_user) ... ok
+test_history_reports_payment_outage (test_services.ServicesTest.test_history_reports_payment_outage) ... ok
+test_idempotent_concurrent_debit_and_payload_conflict (test_services.ServicesTest.test_idempotent_concurrent_debit_and_payload_conflict) ... ok
+test_idempotent_refund_and_no_redebit (test_services.ServicesTest.test_idempotent_refund_and_no_redebit) ... ok
+test_internal_apis_not_public (test_services.ServicesTest.test_internal_apis_not_public) ... ok
+test_login_lock_and_invalid_input (test_services.ServicesTest.test_login_lock_and_invalid_input) ... ok
+test_login_profile_and_no_password_exposure (test_services.ServicesTest.test_login_profile_and_no_password_exposure) ... ok
+test_logout_revokes_session (test_services.ServicesTest.test_logout_revokes_session) ... ok
+test_otp_creation_idempotency_and_unique_active_hashes (test_services.ServicesTest.test_otp_creation_idempotency_and_unique_active_hashes) ... ok
+test_otp_email_scope_and_single_use_under_concurrency (test_services.ServicesTest.test_otp_email_scope_and_single_use_under_concurrency) ... ok
+test_otp_expiration_and_maximum_ttl (test_services.ServicesTest.test_otp_expiration_and_maximum_ttl) ... ok
+test_otp_lock_after_five_wrong_codes (test_services.ServicesTest.test_otp_lock_after_five_wrong_codes) ... ok
+test_persistence_across_user_restart (test_services.ServicesTest.test_persistence_across_user_restart) ... ok
+test_receipt_retry_and_duplicate_request (test_services.ServicesTest.test_receipt_retry_and_duplicate_request) ... ok
+test_session_expiration (test_services.ServicesTest.test_session_expiration) ... ok
+
+----------------------------------------------------------------------
+Ran 24 tests in ~20s
+
+OK
+
+Additional checks:
+- Python compileall passed across all 5 microservices (user, tuition, payment, notification, gateway).
+- node --check web/app.js passed.
+- End-to-end payment flow, concurrency on single account, and concurrency across multiple accounts on the same tuition (with automatic Saga refund) verified.

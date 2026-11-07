@@ -1,0 +1,32 @@
+@startuml
+left to right direction
+actor "Người nộp tiền" as Payer
+actor "Payment Service" as Payment
+actor "Máy chủ email" as SMTP
+rectangle "Phân hệ đóng học phí iBanking" {
+  usecase "Đăng nhập" as Login
+  usecase "Xem thông tin và số dư" as Profile
+  usecase "Xem lịch sử giao dịch" as History
+  usecase "Tra cứu và khởi tạo thanh toán\nThành viên 2" as Pay
+  usecase "Nhận OTP qua email" as OTP
+  usecase "Xác minh OTP" as Verify
+  usecase "Trừ tiền an toàn" as Debit
+  usecase "Hoàn tác debit" as Refund
+  usecase "Nhận email thành công" as Receipt
+  usecase "Đăng xuất" as Logout
+}
+Payer --> Login
+Payer --> Profile
+Payer --> History
+Payer --> Pay
+Payer --> Verify
+Payer --> Logout
+Pay ..> OTP : <<include>>
+Payment --> OTP
+Payment --> Verify
+Payment --> Debit
+Payment --> Refund
+Payment --> Receipt
+OTP --> SMTP
+Receipt --> SMTP
+@enduml
