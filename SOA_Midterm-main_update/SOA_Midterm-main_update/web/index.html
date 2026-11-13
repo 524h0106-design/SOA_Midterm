@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#143e73" />
+    <title>iBanking · Tài khoản và xác thực</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/"
+        >iB<span>anking</span><small>THANH TOÁN HỌC PHÍ</small></a
+      >
+    </header>
+    <main>
+      <div
+        id="notice"
+        class="notice"
+        role="status"
+        aria-live="polite"
+        hidden
+      ></div>
+      <section id="login-view" class="login-layout">
+        <div class="intro">
+          <p class="eyebrow">STUDENT BANKING</p>
+          <h1>Học phí an tâm.<br />Mọi lúc, mọi nơi.</h1>
+          <p>
+            Quản lý tài khoản, theo dõi giao dịch và xác thực thanh toán bằng mã
+            OTP qua email.
+          </p>
+        </div>
+        <form id="login-form" class="panel login-panel">
+          <p class="eyebrow">CHÀO MỪNG TRỞ LẠI</p>
+          <h2>Đăng nhập</h2>
+          <p class="muted">Sử dụng tài khoản đã được cấp để tiếp tục.</p>
+          <label for="username">Tên đăng nhập</label
+          ><input
+            id="username"
+            name="username"
+            autocomplete="username"
+            maxlength="64"
+            required
+            placeholder="Nhập tên đăng nhập"
+          />
+          <label for="password">Mật khẩu</label>
+          <div class="password-wrap">
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              maxlength="256"
+              required
+              placeholder="Nhập mật khẩu"
+            /><button
+              id="toggle-password"
+              type="button"
+              class="text-button"
+              aria-label="Hiện mật khẩu"
+            >
+              Hiện
+            </button>
+          </div>
+          <p id="login-error" class="error" role="alert"></p>
+          <button id="login-submit" class="primary" type="submit">
+            Đăng nhập
+          </button>
+        </form>
+      </section>
+      <section id="app-view" hidden>
+        <div class="app-heading">
+          <div>
+            <p class="eyebrow">TÀI KHOẢN CỦA BẠN</p>
+            <h1>Xin chào, <span id="greeting">bạn</span></h1>
+          </div>
+          <button id="logout" class="secondary" type="button">Đăng xuất</button>
+        </div>
+        <nav aria-label="Chức năng tài khoản">
+          <button
+            data-tab="account"
+            class="nav-button active"
+            type="button"
+            aria-pressed="true"
+          >
+            Tổng quan</button
+          ><button
+            data-tab="history"
+            class="nav-button"
+            type="button"
+            aria-pressed="false"
+          >
+            Lịch sử giao dịch</button
+          ><button
+            data-tab="otp"
+            class="nav-button"
+            type="button"
+            aria-pressed="false"
+          >
+            Xác thực OTP
+          </button>
+        </nav>
+        <section id="account-tab" class="tab-content">
+          <div class="account-grid">
+            <div class="balance-card">
+              <p>Số dư khả dụng</p>
+              <h2 id="balance">—</h2>
+              <div class="balance-footer">
+                <span id="card-name">—</span><span>VND</span>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="section-heading">
+                <h2>Thông tin người nộp</h2>
+                <button id="refresh-account" class="text-button" type="button">
+                  Làm mới
+                </button>
+              </div>
+              <dl class="profile">
+                <div>
+                  <dt>Họ và tên</dt>
+                  <dd id="full-name">—</dd>
+                </div>
+                <div>
+                  <dt>Số điện thoại</dt>
+                  <dd id="phone">—</dd>
+                </div>
+                <div>
+                  <dt>Email nhận OTP</dt>
+                  <dd id="email">—</dd>
+                </div>
+              </dl>
+              <p class="muted small">
+                Thông tin được lấy từ tài khoản đăng nhập và không thể chỉnh sửa
+                tại màn hình thanh toán.
+              </p>
+            </div>
+          </div>
+          <div id="payment-slot" class="panel integration">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">DỊCH VỤ HỌC VỤ TDTU</p>
+                <h2>Tra cứu và thanh toán học phí</h2>
+              </div>
+              <button id="go-otp" class="secondary" type="button">
+                Mở bước xác thực OTP
+              </button>
+            </div>
+            <p class="muted">
+              Nhập Mã số sinh viên (MSSV) để tự động tra cứu khoản học phí cần đóng. Hệ thống chỉ thực hiện thanh toán toàn bộ khoản học phí (không thanh toán một phần).
+            </p>
+
+            <div class="payment-groups">
+              <div class="payment-box">
+                <h3 class="group-title">a. Người nộp tiền (Tự động từ tài khoản đăng nhập)</h3>
+                <dl class="profile">
+                  <div>
+                    <dt>Họ và tên</dt>
+                    <dd id="payer-full-name">—</dd>
+                  </div>
+                  <div>
+                    <dt>Số điện thoại</dt>
+                    <dd id="payer-phone">—</dd>
+                  </div>
+                  <div>
+                    <dt>Địa chỉ email</dt>
+                    <dd id="payer-email">—</dd>
+                  </div>
+                </dl>
+              </div>
+
+              <div class="payment-box">
+                <h3 class="group-title">b. Thông tin học phí</h3>
+                <form id="tuition-lookup-form" class="lookup-form">
+                  <label for="student-id-input">Mã số sinh viên (MSSV)</label>
+                  <div class="inline-form">
+                    <input
+                      id="student-id-input"
+                      name="student_id"
+                      pattern="[A-Za-z0-9]{3,30}"
+                      maxlength="30"
+                      required
+                      autocomplete="off"
+                      placeholder="Nhập MSSV (ví dụ: 524H0106)"
+                    />
+                    <button id="lookup-tuition-btn" type="submit" class="secondary">
+                      Tra cứu
+                    </button>
+                  </div>
+                </form>
+                <div class="student-list-section">
+                  <div class="student-list-header">
+                    <span class="student-list-title">Danh sách sinh viên</span>
+                    <button id="refresh-students-btn" type="button" class="text-button">
+                      Làm mới
+                    </button>
+                  </div>
+                  <div class="student-list-scroll">
+                    <table class="student-list-table">
+                      <thead>
+                        <tr>
+                          <th>MSSV</th>
+                          <th>Họ và tên</th>
+                          <th>Học phí</th>
+                          <th>Trạng thái</th>
+                        </tr>
+                      </thead>
+                      <tbody id="student-list-body">
+                        <tr>
+                          <td colspan="4" class="muted">Đang tải danh sách sinh viên…</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <p id="tuition-error" class="error" role="alert"></p>
+                <div id="tuition-details" hidden>
+                  <dl class="profile">
+                    <div>
+                      <dt>Mã số sinh viên</dt>
+                      <dd id="tuition-student-id">—</dd>
+                    </div>
+                    <div>
+                      <dt>Họ và tên sinh viên</dt>
+                      <dd id="tuition-student-name">—</dd>
+                    </div>
+                    <div>
+                      <dt>Khoa / Học kỳ</dt>
+                      <dd id="tuition-meta">—</dd>
+                    </div>
+                    <div>
+                      <dt>Trạng thái học phí</dt>
+                      <dd><span id="tuition-status-badge" class="badge">—</span></dd>
+                    </div>
+                    <div>
+                      <dt>Học phí cần đóng</dt>
+                      <dd id="tuition-amount">—</dd>
+                    </div>
+                  </dl>
+                </div>
+              </div>
+            </div>
+
+            <form id="create-payment-form" class="payment-box payment-confirm-box">
+              <h3 class="group-title">c. Thông tin thanh toán</h3>
+              <dl class="profile">
+                <div>
+                  <dt>Số dư khả dụng</dt>
+                  <dd id="payment-balance">—</dd>
+                </div>
+                <div>
+                  <dt>Số tiền cần thanh toán</dt>
+                  <dd id="payment-amount">—</dd>
+                </div>
+                <div>
+                  <dt>Số dư sau giao dịch</dt>
+                  <dd id="payment-remaining">—</dd>
+                </div>
+              </dl>
+
+              <div class="terms-box">
+                <p class="small muted">
+                  <strong>Điều khoản và thỏa thuận hệ thống iBanking:</strong> Người nộp tiền sử dụng số dư khả dụng để thanh toán <strong>toàn bộ khoản học phí (100%)</strong> cho sinh viên có MSSV đã tra cứu. Giao dịch phải được xác thực bằng mã OTP gửi qua email (hiệu lực tối đa 5 phút, sử dụng 1 lần). Sau khi hoàn tất, khoản học phí được gạch nợ ngay lập tức.
+                </p>
+                <label class="checkbox-label" for="terms-accepted">
+                  <input id="terms-accepted" type="checkbox" />
+                  <span>Tôi đã kiểm tra thông tin và đồng ý với các thỏa thuận, điều khoản của hệ thống.</span>
+                </label>
+              </div>
+
+              <p id="payment-eligibility-msg" class="muted small" role="status"></p>
+              <button id="submit-payment-btn" type="submit" class="primary" disabled>
+                Xác nhận giao dịch
+              </button>
+            </form>
+          </div>
+        </section>
+        <section id="history-tab" class="tab-content panel" hidden>
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">HOẠT ĐỘNG TÀI KHOẢN</p>
+              <h2>Lịch sử giao dịch</h2>
+            </div>
+            <button id="refresh-history" type="button" class="secondary">
+              Tải lại
+            </button>
+          </div>
+          <p id="history-state" class="muted" role="status"></p>
+          <div class="table-scroll">
+            <table id="history-table" hidden>
+              <thead>
+                <tr>
+                  <th>Mã giao dịch</th>
+                  <th>MSSV</th>
+                  <th>Số tiền</th>
+                  <th>Trạng thái</th>
+                  <th>Thời gian</th>
+                </tr>
+              </thead>
+              <tbody id="history-body"></tbody>
+            </table>
+          </div>
+        </section>
+        <section id="otp-tab" class="tab-content panel otp-panel" hidden>
+          <p class="eyebrow">XÁC THỰC GIAO DỊCH</p>
+          <h2>Xác nhận bằng OTP</h2>
+          <p class="muted">
+            Nhập mã OTP gửi đến email của người nộp. Mỗi mã chỉ dùng thành công
+            một lần và có hiệu lực tối đa 5 phút.
+          </p>
+          <form id="load-payment-form">
+            <label for="transaction-id">Mã giao dịch</label>
+            <div class="inline-form">
+              <input
+                id="transaction-id"
+                pattern="[A-Za-z0-9_-]{3,100}"
+                maxlength="100"
+                required
+                placeholder="Mã từ bước khởi tạo thanh toán"
+              /><button id="load-payment" type="submit" class="secondary">
+                Tải thông tin
+              </button>
+            </div>
+          </form>
+          <div id="payment-summary" hidden>
+            <dl class="profile">
+              <div>
+                <dt>Người nộp</dt>
+                <dd id="otp-payer">—</dd>
+              </div>
+              <div>
+                <dt>Sinh viên</dt>
+                <dd id="otp-student">—</dd>
+              </div>
+              <div>
+                <dt>MSSV</dt>
+                <dd id="otp-student-id">—</dd>
+              </div>
+              <div>
+                <dt>Số tiền</dt>
+                <dd id="otp-amount">—</dd>
+              </div>
+            </dl>
+            <p id="countdown" class="countdown" role="status"></p>
+            <form id="otp-form">
+              <label for="otp">Mã OTP gồm 6 chữ số</label
+              ><input
+                id="otp"
+                class="otp-input"
+                name="otp"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+                pattern="[0-9]{6}"
+                minlength="6"
+                maxlength="6"
+                required
+                placeholder="000000"
+              /><button id="confirm-otp" type="submit" class="primary">
+                Xác nhận thanh toán
+              </button>
+            </form>
+          </div>
+          <p id="otp-error" class="error" role="alert"></p>
+          <div id="payment-result" class="result" role="status" hidden></div>
+        </section>
+      </section>
+    </main>
+    <footer>iBanking</footer>
+  </body>
+</html>
